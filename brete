@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# sort las cosas importantes
+
+if [[ "x$LISTA" = x ]]; then
+  BRETE=~/Dropbox/brete.txt
+  CACHETE=~/Dropbox/brete_cachete.txt
+else
+  BRETE="$LISTA"
+fi
+
+function brete_ayuda() {
+  echo "brete"
+  echo "  -h: help"
+  echo "  a: ARCHIVAR las tareas completadas"
+  echo "  b: BORRAR de la lista"
+  echo "  c: CACHETE, marcar una tarea como completada"
+  echo "  !: IMPORTANTE, priorizar una tarea (necesita gawk)"
+  echo "  string: agrega a la lista"
+  echo "  sin args: despliega la lista"
+}
+
+function brete_archivar() {
+  if [[ -f "$BADOOP" ]]; then
+  grep -E "x [[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}" $BRETE >> $CACHETE;
+  sed -E -i '/x [[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}/d' $BRETE;
+  fi
+}
+
+function brete_borrar() {
+  if [[ -f "$BRETE" ]]; then
+    if [[ $@ = "" ]]; then
+      echo "Error: Please provide a keyword matching a word in the TODO item to be deleted or the number of the TODO item to be deleted"
+    elif [[ $@ = *[^0-9]* ]]; then
+      sed -i -e "/$@/d" "$BRETE";
+    else
+      sed -i $@'d' "$BRETE";
+    fi    
+  fi
+}
+
+function brete_importante() {
+  if [[ -f "$BRETE" ]]; then
+    if [[ $@ = "" ]]; then
+      echo "Error: dar un numero o palabra clave para priorizar"
+    elif [[ $@ = *[^0-9]* ]]; then
+      for LINE in $(grep -nr $@ $BRETE|gawk '{print $1}' FS=":");do
+        sed -i "$LINE s:^:(!) :" "$BRETE";
+      done
+    else
+      sed -i "$@ s:^:(!) :" "$BRETE";
+    fi    
+  fi
+}
+
+function cachete() {
+  if [[ -f "$BRETE" ]]; then
+    if [[ $@ = "" ]]; then
+      echo "Error: dar un numero o palabra clave de la tarea hecha"
+    elif [[ $@ = *[^0-9]* ]]; then
+      for LINE in $(grep -nr $@ $BRETE|gawk '{print $1}' FS=":");do
+        sed -i "$LINE s:^:x `date +"%Y-%m-%d"` :" "$BRETE";
+      done
+    else
+      sed -i "$@ s:^:x `date +"%Y-%m-%d"` :" "$BRETE";
+    fi    
+  fi
+}
+
+function brete() {
+  if [[ $# == "0" ]]; then
+    if [[ -f "$BRETE" ]]; then
+      cat -n "$BRETE"|grep --color -E "\(!\).*|$";
+    fi
+  elif [[ $1 == "-h" ]]; then
+    brete_ayuda
+  elif [[ $1 == "-b" ]]; then
+    shift
+    brete_borrar $@
+  elif [[ $1 == "!" ]]; then
+    shift
+    brete_importante $@
+  elif [[ $1 == "-d" ]]; then
+    shift
+    cachete $@
+  elif [[ $1 == "-a" ]]; then
+    shift
+    brete_archivar
+  else
+    echo "$@" >> "$BRETE"
+  fi
+}
+
+brete $@
