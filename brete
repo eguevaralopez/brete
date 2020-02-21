@@ -2,12 +2,8 @@
 
 # sort las cosas importantes
 
-if [[ "x$LISTA" = x ]]; then
-  BRETE=~/Dropbox/brete.txt
-  CACHETE=~/Dropbox/brete_cachete.txt
-else
-  BRETE="$LISTA"
-fi
+BRETE=~/Dropbox/brete.txt
+CACHETE=~/Dropbox/brete_cachete.txt
 
 function brete_ayuda() {
   echo "brete"
@@ -21,7 +17,7 @@ function brete_ayuda() {
 }
 
 function brete_archivar() {
-  if [[ -f "$BADOOP" ]]; then
+  if [[ -f "$BRETE" ]]; then
   grep -E "x [[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}" $BRETE >> $CACHETE;
   sed -E -i '/x [[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}/d' $BRETE;
   fi
@@ -74,16 +70,16 @@ function brete() {
     fi
   elif [[ $1 == "-h" ]]; then
     brete_ayuda
-  elif [[ $1 == "-b" ]]; then
+  elif [[ $1 == "b" ]]; then
     shift
     brete_borrar $@
   elif [[ $1 == "!" ]]; then
     shift
     brete_importante $@
-  elif [[ $1 == "-d" ]]; then
+  elif [[ $1 == "c" ]]; then
     shift
     cachete $@
-  elif [[ $1 == "-a" ]]; then
+  elif [[ $1 == "a" ]]; then
     shift
     brete_archivar
   else
